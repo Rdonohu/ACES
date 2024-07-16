@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from Threads import Worker
+from Threads import Worker, ArduinoWorker
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -35,8 +35,7 @@ class Ui_MainWindow(object):
         self.Speedometer = QtWidgets.QLCDNumber(self.frame)
         self.Speedometer.setEnabled(True)
         self.Speedometer.setGeometry(QtCore.QRect(400, 290, 181, 51))
-        self.Speedometer.setStyleSheet("background-color: rgb(0, 85, 0);\n"
-"")
+        self.Speedometer.setStyleSheet("background-color: rgb(0, 85, 0);")
         self.Speedometer.setObjectName("Speedometer")
         self.label = QtWidgets.QLabel(self.frame)
         self.label.setGeometry(QtCore.QRect(-10, 80, 1001, 621))
@@ -85,6 +84,11 @@ class Ui_MainWindow(object):
         #start thread
         self.worker.start()
 
+        self.ArduinoWorker = ArduinoWorker()
+        self.worker.valueFound.connect(self.ArduinoOnValueFound)
+        self.ArduinoWorker.start()
+
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
@@ -94,11 +98,15 @@ class Ui_MainWindow(object):
         self.ActivateLimp.setText(_translate("MainWindow", "Activate Limp Mode"))
         self.PoliceNotifier.setText(_translate("MainWindow", "Notify Police"))
         self.OwnerNotifier.setText(_translate("MainWindow", "Notify Owner"))
+        
     def OnValueFound(self, value):
         self.Speedometer.display(value)
 
     def StartVehicle(self):
         self.worker.startThread()
+    
+    def ArduinoOnValueFound(self):
+        pass
         
 def LockVehicle():
     print("LockVehicle")

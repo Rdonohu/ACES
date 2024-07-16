@@ -30,7 +30,7 @@ class Worker(QtCore.QThread):
             #decreases speed when vehicle stopped
             while self.runFlag:
                 self.speed=self.speed+1
-                time.sleep(0.5)
+                time.sleep(0.25)
                 self.valueFound.emit(self.speed)
             
             while not self.runFlag:
@@ -38,4 +38,26 @@ class Worker(QtCore.QThread):
                     self.speed=self.speed-1
                     time.sleep(0.5)
                     self.valueFound.emit(self.speed)
-                time.sleep(0.5)
+                time.sleep(0.25)
+
+
+class ArduinoWorker(QtCore.QThread):
+    #LCD worker thread
+    valueFound = QtCore.pyqtSignal(int, name="valueFound")
+
+
+    def __init__(self, parent=None):
+        super(Worker, self).__init__(parent)
+        
+
+    def startThread(self):
+        pass
+        
+
+    def stopThread(self):
+        pass
+
+    def run(self):
+        while True:
+            self.valueFound.emit("values")
+            time.sleep(0.25)
