@@ -106,7 +106,7 @@ class Ui_MainWindow(object):
         self.worker.startThread()
     
     def ArduinoOnValueFound(self):
-        pass
+        self.ArduinoWorker.startThread()
         
 def LockVehicle():
     print("LockVehicle")

@@ -45,19 +45,16 @@ class ArduinoWorker(QtCore.QThread):
     #LCD worker thread
     valueFound = QtCore.pyqtSignal(int, name="valueFound")
 
-
     def __init__(self, parent=None):
-        super(Worker, self).__init__(parent)
+        super(ArduinoWorker, self).__init__(parent)
         
-
-    def startThread(self):
+    def startThread(self): 
         pass
         
-
     def stopThread(self):
         pass
 
     def run(self):
         while True:
-            self.valueFound.emit("values")
-            time.sleep(0.25)
+            time.sleep(0.5)
+            pass
