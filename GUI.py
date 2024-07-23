@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from Threads import Worker, ArduinoWorker
+from Threads import Worker, ArduinoWorker, AlarmWorker
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -23,18 +23,17 @@ class Ui_MainWindow(object):
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame.setObjectName("frame")
         self.StartButton = QtWidgets.QPushButton(self.frame)
-        self.StartButton.setGeometry(QtCore.QRect(30, 580, 151, 91))
+        self.StartButton.setGeometry(QtCore.QRect(70, 600, 61, 41))
         self.StartButton.setMouseTracking(False)
+        self.StartButton.setStyleSheet("background-color : rgb(0, 181, 87)")
         self.StartButton.setObjectName("StartButton")
         self.VehicleLock = QtWidgets.QPushButton(self.frame)
-        self.VehicleLock.setGeometry(QtCore.QRect(740, 550, 151, 91))
+        self.VehicleLock.setGeometry(QtCore.QRect(790, 560, 101, 91))
+        self.VehicleLock.setStyleSheet("background-color : rgb(0, 181, 87)")
         self.VehicleLock.setObjectName("VehicleLock")
-        self.CentreConsole = QtWidgets.QTextBrowser(self.frame)
-        self.CentreConsole.setGeometry(QtCore.QRect(30, 340, 211, 131))
-        self.CentreConsole.setObjectName("CentreConsole")
         self.Speedometer = QtWidgets.QLCDNumber(self.frame)
         self.Speedometer.setEnabled(True)
-        self.Speedometer.setGeometry(QtCore.QRect(400, 290, 181, 51))
+        self.Speedometer.setGeometry(QtCore.QRect(370, 290, 221, 51))
         self.Speedometer.setStyleSheet("background-color: rgb(0, 85, 0);")
         self.Speedometer.setObjectName("Speedometer")
         self.label = QtWidgets.QLabel(self.frame)
@@ -42,11 +41,15 @@ class Ui_MainWindow(object):
         self.label.setText("")
         self.label.setPixmap(QtGui.QPixmap("range-rover-05.jpg"))
         self.label.setObjectName("label")
+        self.graphicsView = QtWidgets.QGraphicsView(self.frame)
+        self.graphicsView.setGeometry(QtCore.QRect(10, 330, 271, 161))
+        self.graphicsView.setStyleSheet("background-color: rgb(53, 53, 53)")
+        self.graphicsView.setObjectName("graphicsView")
         self.label.raise_()
         self.StartButton.raise_()
         self.VehicleLock.raise_()
-        self.CentreConsole.raise_()
         self.Speedometer.raise_()
+        self.graphicsView.raise_()
         self.frame_2 = QtWidgets.QFrame(self.centralwidget)
         self.frame_2.setGeometry(QtCore.QRect(1040, 90, 211, 381))
         self.frame_2.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -70,8 +73,8 @@ class Ui_MainWindow(object):
 
         #Connecting slots 
         self.StartButton.clicked.connect(self.StartVehicle) 
-        self.VehicleLock.clicked.connect(LockVehicle)
-        self.AlarmTest.clicked.connect(ToggleAlarm)
+        self.VehicleLock.clicked.connect(self.LockVehicle)
+        self.AlarmTest.clicked.connect(self.ToggleAlarm)
         self.ActivateLimp.clicked.connect(ActivateLimpMode)
         self.PoliceNotifier.clicked.connect(NotifyPolice)
         self.OwnerNotifier.clicked.connect(NotifyOwner)
@@ -88,6 +91,8 @@ class Ui_MainWindow(object):
         self.worker.valueFound.connect(self.ArduinoOnValueFound)
         self.ArduinoWorker.start()
 
+        self.AlarmWorker = AlarmWorker(self.graphicsView)
+        self.AlarmWorker.start()
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -103,16 +108,37 @@ class Ui_MainWindow(object):
         self.Speedometer.display(value)
 
     def StartVehicle(self):
+        #toggle between start and stop button states
+        if self.StartButton.text()  == "start vehicle":
+            self.StartButton.setText("Stop Vehicle")
+            self.StartButton.setStyleSheet("background-color : red;")
+        else:
+            self.StartButton.setText("start vehicle")
+            self.StartButton.setStyleSheet("background-color : rgb(0, 181, 87)")
+        # send signal to thread
         self.worker.startThread()
     
     def ArduinoOnValueFound(self):
+        #send signal to arduino
         self.ArduinoWorker.startThread()
         
-def LockVehicle():
-    print("LockVehicle")
+    def LockVehicle(self):
+        if self.VehicleLock.text()  == "Locked":
+            #unlock vehicle
+            self.VehicleLock.setText("Lock")
+            self.VehicleLock.setStyleSheet("background-color : rgb(0, 181, 87)")
+            print("unLockVehicle")
+        else:
+            #Lock vehicle
+            self.VehicleLock.setText("Locked")
+            self.VehicleLock.setStyleSheet("background-color : red;")
+            print("LockVehicle")
 
-def ToggleAlarm():
-    print("weee wooo weeee wooo")
+    def ToggleAlarm(self):
+        if self.AlarmWorker.getState():
+            self.AlarmWorker.stopAlarm()
+        else:
+            self.AlarmWorker.startAlarm()
 
 def NotifyPolice():
     print("police are on the way")
