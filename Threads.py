@@ -71,7 +71,7 @@ class ArduinoWorker(QtCore.QThread):
 
 class AlarmWorker(QtCore.QThread):
     #LCD worker thread
-    valueFound = QtCore.pyqtSignal(int, name="valueFound")
+    valueFound = QtCore.pyqtSignal(str, name="valueFound")
 
     def __init__(self, console,parent=None) :
         super(AlarmWorker, self).__init__(parent)
@@ -86,16 +86,14 @@ class AlarmWorker(QtCore.QThread):
         
     def stopAlarm(self):
         self.alarmState = False
-        self.console.setStyleSheet("background-color: rgb(53, 53, 53)")
 
     def run(self):
         while True:
             if self.alarmState:
-                # self.console.setStyleSheet("background-color: red")
-                print("wee")
+                self.valueFound.emit("background-color: red")
                 time.sleep(0.5)
-                # self.console.setStyleSheet("background-color: rgb(53, 53, 53)")
-                print("woo")
+                self.valueFound.emit("background-color: rgb(53, 53, 53)")
+                
             time.sleep(0.5)
 
 

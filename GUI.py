@@ -33,8 +33,8 @@ class Ui_MainWindow(object):
         self.VehicleLock.setObjectName("VehicleLock")
         self.Speedometer = QtWidgets.QLCDNumber(self.frame)
         self.Speedometer.setEnabled(True)
-        self.Speedometer.setGeometry(QtCore.QRect(370, 290, 221, 51))
-        self.Speedometer.setStyleSheet("background-color: rgb(0, 85, 0);")
+        self.Speedometer.setGeometry(QtCore.QRect(370, 280, 230, 65))
+        self.Speedometer.setStyleSheet("background-color: rgb(53, 53, 53)")
         self.Speedometer.setObjectName("Speedometer")
         self.label = QtWidgets.QLabel(self.frame)
         self.label.setGeometry(QtCore.QRect(-10, 80, 1001, 621))
@@ -92,6 +92,7 @@ class Ui_MainWindow(object):
         self.ArduinoWorker.start()
 
         self.AlarmWorker = AlarmWorker(self.graphicsView)
+        self.AlarmWorker.valueFound.connect(self.AlarmOnValueFound)
         self.AlarmWorker.start()
 
     def retranslateUi(self, MainWindow):
@@ -122,6 +123,11 @@ class Ui_MainWindow(object):
         #send signal to arduino
         self.ArduinoWorker.startThread()
         
+    def AlarmOnValueFound(self,value ):
+        self.graphicsView.setStyleSheet(value)
+        self.Speedometer.setStyleSheet(value)
+
+
     def LockVehicle(self):
         if self.VehicleLock.text()  == "Locked":
             #unlock vehicle
