@@ -3,6 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal, QObject
 import time
 import keyboard
+import serial
 
 class Worker(QtCore.QThread):
     #LCD worker thread
@@ -56,6 +57,8 @@ class ArduinoWorker(QtCore.QThread):
 
     def __init__(self, parent=None):
         super(ArduinoWorker, self).__init__(parent)
+        self.arduino = serial.Serial(port = "COM3", timeout=0)
+        time.sleep(2)
         
     def startThread(self): 
         pass
@@ -65,6 +68,8 @@ class ArduinoWorker(QtCore.QThread):
 
     def run(self):
         while True:
+            var = self.arduino.read(8)
+            print(var)
             time.sleep(0.5)
             pass
 

@@ -13,6 +13,7 @@ from Threads import Worker, ArduinoWorker, AlarmWorker
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+        # GUI Set Up DONT MIND THIS PART -----------------------------------------------------------------------------------------------------------------------------------
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1335, 915)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -70,8 +71,8 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
-
-        #Connecting slots 
+        # end of GUI Set up ---------------------------------------------------------------------------------------------------------------------------------------
+        #Connecting slots i.e functions that occur when button is clicked------------------------------------------------------------------------------------------
         self.StartButton.clicked.connect(self.StartVehicle) 
         self.VehicleLock.clicked.connect(self.LockVehicle)
         self.AlarmTest.clicked.connect(self.ToggleAlarm)
@@ -79,8 +80,9 @@ class Ui_MainWindow(object):
         self.PoliceNotifier.clicked.connect(NotifyPolice)
         self.OwnerNotifier.clicked.connect(NotifyOwner)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        # -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        #create thread
+        #create threads for different functionalities ---------------------------------------------------------------------------------------------------------------
         self.worker = Worker()
         #connect thread signal to slot
         self.worker.valueFound.connect(self.OnValueFound)
@@ -94,8 +96,10 @@ class Ui_MainWindow(object):
         self.AlarmWorker = AlarmWorker(self.graphicsView)
         self.AlarmWorker.valueFound.connect(self.AlarmOnValueFound)
         self.AlarmWorker.start()
+        # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     def retranslateUi(self, MainWindow):
+        # dont bother with this
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.StartButton.setText(_translate("MainWindow", "start vehicle"))
@@ -104,11 +108,13 @@ class Ui_MainWindow(object):
         self.ActivateLimp.setText(_translate("MainWindow", "Activate Limp Mode"))
         self.PoliceNotifier.setText(_translate("MainWindow", "Notify Police"))
         self.OwnerNotifier.setText(_translate("MainWindow", "Notify Owner"))
-        
+    
+    # when speedo thread send back a value this function is used
     def OnValueFound(self, value):
         self.Speedometer.display(value)
 
     def StartVehicle(self):
+        # this function is called when start button is pressed
         #toggle between start and stop button states
         if self.StartButton.text()  == "start vehicle":
             self.StartButton.setText("Stop Vehicle")
@@ -117,18 +123,22 @@ class Ui_MainWindow(object):
             self.StartButton.setText("start vehicle")
             self.StartButton.setStyleSheet("background-color : rgb(0, 181, 87)")
         # send signal to thread
+        # starts speed to thread
         self.worker.startThread()
     
+
     def ArduinoOnValueFound(self):
+        # when arduino thread sends back a value this function is used to interpret the value sent back
         #send signal to arduino
         self.ArduinoWorker.startThread()
-        
+        # when alarm thread sends back a value this function is used to interpret the value sent back
     def AlarmOnValueFound(self,value ):
         self.graphicsView.setStyleSheet(value)
         self.Speedometer.setStyleSheet(value)
 
 
     def LockVehicle(self):
+        # this function is called when button is pressed
         if self.VehicleLock.text()  == "Locked":
             #unlock vehicle
             self.VehicleLock.setText("Lock")
@@ -141,18 +151,22 @@ class Ui_MainWindow(object):
             print("LockVehicle")
 
     def ToggleAlarm(self):
+        # this function is called when button is pressed
         if self.AlarmWorker.getState():
             self.AlarmWorker.stopAlarm()
         else:
             self.AlarmWorker.startAlarm()
 
 def NotifyPolice():
+    # this function is called when button is pressed
     print("police are on the way")
 
 def NotifyOwner():
+    # this function is called when button is pressed
     print("The owner has been notified")
 
 def ActivateLimpMode():
+    # this function is called when button is pressed
     print(" limp")
 
 
