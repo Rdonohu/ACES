@@ -1,5 +1,12 @@
 #include <Wire.h>
 #include <MPU6050.h>
+#include <IRremote.h>
+#define IR_RECEIVE_PIN 3
+
+#define IR_BUTTON_1 16
+#define IR_BUTTON_2 17
+#define IR_BUTTON_3 18
+
 
 MPU6050 mpu;
 
@@ -15,8 +22,9 @@ void setup() {
     while(1);
   } else {
     Serial.println("Connected!");
+    
   }
-
+  IrReceiver.begin(IR_RECEIVE_PIN);
 }
 
 void loop() {
@@ -34,7 +42,25 @@ void loop() {
   if(abs(axG) > thresh || abs(ayG) > thresh || abs(azG) > thresh){
     Serial.println("Bump Detected!");
   }
+  if (IrReceiver.decode()) {
+    IrReceiver.resume();
+    int command = IrReceiver.decodedIRData.command;
+    switch (command){
 
+      case IR_BUTTON_1: {
+       Serial.println(1);
+       break;
+      }
+      case IR_BUTTON_2: {
+       Serial.println(2);
+       break;
+      }
+      case IR_BUTTON_3: {
+       Serial.println(3);
+       break;
+      }
+    }
+  }
   delay(50);
 
 }
