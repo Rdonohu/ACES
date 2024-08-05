@@ -14,7 +14,7 @@ class Worker(QtCore.QThread):
         super(Worker, self).__init__(parent)
         self.runFlag = False
         self.speed = 0
-        
+        self.Imobiliser = False
 
     def startThread(self):
         if self.runFlag:
@@ -26,14 +26,30 @@ class Worker(QtCore.QThread):
     def stopThread(self):
         self.runFlag = False
 
+    def setImobiliser(self):
+        self.Imobiliser = True
+    
+    def unsetImobiliser(self):
+        self.Imobiliser = False
+    
+
+
     def run(self):
         while True:
             # demo code that increases speed on lcd when vehicle started
             #decreases speed when vehicle stopped
             while self.runFlag:
                 if keyboard.is_pressed("up"):
-                    self.speed=self.speed+1
-                    time.sleep(0.25)
+                    if self.Imobiliser and self.speed == 0:
+                        self.speed=0
+                        time.sleep(0.25)
+                    elif self.Imobiliser and self.speed >= 15:
+                         self.speed=self.speed-1
+                         time.sleep(0.25)
+                         print("Imobiliser Engaged")
+                    else:
+                        self.speed=self.speed+1
+                        time.sleep(0.25)
                     self.valueFound.emit(self.speed)
                 elif self.speed > 0:
                     self.speed=self.speed-1
@@ -54,10 +70,11 @@ class Worker(QtCore.QThread):
 class ArduinoWorker(QtCore.QThread):
     #LCD worker thread
     valueFound = QtCore.pyqtSignal(int, name="valueFound")
+    breakInFound = QtCore.pyqtSignal(bool, name="breakInFound")
 
     def __init__(self, parent=None):
         super(ArduinoWorker, self).__init__(parent)
-        self.arduino = serial.Serial(port = "COM7", timeout=0)
+        self.arduino = serial.Serial(port = "COM5", timeout=0)
         time.sleep(2)
         
     def startThread(self): 
@@ -66,10 +83,18 @@ class ArduinoWorker(QtCore.QThread):
     def stopThread(self):
         pass
 
+    def sendLock(self):
+        self.arduino.write(str.encode("lock"))
+    
+    def sendUnlock(self):
+        self.arduino.write(str.encode("unlock"))
+
+
     def run(self):
         while True:
-            var = self.arduino.read(8)
-            print(var)
+            var = self.arduino.read(10)
+            if var == b"BreakIn":
+                self.breakInFound.emit(True)
             time.sleep(0.5)
             pass
 

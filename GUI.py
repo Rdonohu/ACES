@@ -59,9 +59,9 @@ class Ui_MainWindow(object):
         self.AlarmTest = QtWidgets.QPushButton(self.frame_2)
         self.AlarmTest.setGeometry(QtCore.QRect(30, 280, 161, 81))
         self.AlarmTest.setObjectName("AlarmTest")
-        self.ActivateLimp = QtWidgets.QPushButton(self.frame_2)
-        self.ActivateLimp.setGeometry(QtCore.QRect(30, 180, 161, 81))
-        self.ActivateLimp.setObjectName("ActivateLimp")
+        self.ActivateImobiliser = QtWidgets.QPushButton(self.frame_2)
+        self.ActivateImobiliser.setGeometry(QtCore.QRect(30, 180, 161, 81))
+        self.ActivateImobiliser.setObjectName("ActivateImobiliser")
         self.PoliceNotifier = QtWidgets.QPushButton(self.frame_2)
         self.PoliceNotifier.setGeometry(QtCore.QRect(30, 90, 161, 81))
         self.PoliceNotifier.setObjectName("PoliceNotifier")
@@ -76,7 +76,7 @@ class Ui_MainWindow(object):
         self.StartButton.clicked.connect(self.StartVehicle) 
         self.VehicleLock.clicked.connect(self.LockVehicle)
         self.AlarmTest.clicked.connect(self.ToggleAlarm)
-        self.ActivateLimp.clicked.connect(ActivateLimpMode)
+        self.ActivateImobiliser.clicked.connect(self.ActivateImobiliserMode)
         self.PoliceNotifier.clicked.connect(NotifyPolice)
         self.OwnerNotifier.clicked.connect(NotifyOwner)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -90,7 +90,8 @@ class Ui_MainWindow(object):
         self.worker.start()
 
         self.ArduinoWorker = ArduinoWorker()
-        self.worker.valueFound.connect(self.ArduinoOnValueFound)
+        self.ArduinoWorker.valueFound.connect(self.ArduinoOnValueFound)
+        self.ArduinoWorker.breakInFound.connect(self.BreakInFound)
         self.ArduinoWorker.start()
 
         self.AlarmWorker = AlarmWorker(self.graphicsView)
@@ -105,7 +106,7 @@ class Ui_MainWindow(object):
         self.StartButton.setText(_translate("MainWindow", "start vehicle"))
         self.VehicleLock.setText(_translate("MainWindow", "lock"))
         self.AlarmTest.setText(_translate("MainWindow", "toggle alarm"))
-        self.ActivateLimp.setText(_translate("MainWindow", "Activate Limp Mode"))
+        self.ActivateImobiliser.setText(_translate("MainWindow", "Activate Imobiliser Mode"))
         self.PoliceNotifier.setText(_translate("MainWindow", "Notify Police"))
         self.OwnerNotifier.setText(_translate("MainWindow", "Notify Owner"))
     
@@ -119,6 +120,11 @@ class Ui_MainWindow(object):
         if self.StartButton.text()  == "start vehicle":
             self.StartButton.setText("Stop Vehicle")
             self.StartButton.setStyleSheet("background-color : red;")
+            if self.VehicleLock.text()  == "Locked":
+                if not self.AlarmWorker.getState():
+                    self.AlarmWorker.startAlarm()
+                    self.worker.setImobiliser()
+
         else:
             self.StartButton.setText("start vehicle")
             self.StartButton.setStyleSheet("background-color : rgb(0, 181, 87)")
@@ -143,19 +149,37 @@ class Ui_MainWindow(object):
             #unlock vehicle
             self.VehicleLock.setText("Lock")
             self.VehicleLock.setStyleSheet("background-color : rgb(0, 181, 87)")
-            print("unLockVehicle")
+            self.ArduinoWorker.sendUnlock()
+            if self.AlarmWorker.getState():
+                self.AlarmWorker.stopAlarm()
+                self.worker.unsetImobiliser()
         else:
             #Lock vehicle
             self.VehicleLock.setText("Locked")
+            self.ArduinoWorker.sendLock()
             self.VehicleLock.setStyleSheet("background-color : red;")
-            print("LockVehicle")
 
     def ToggleAlarm(self):
         # this function is called when button is pressed
         if self.AlarmWorker.getState():
             self.AlarmWorker.stopAlarm()
+            self.ActivateImobiliserMode()
         else:
             self.AlarmWorker.startAlarm()
+            self.ActivateImobiliserMode()
+
+    def ActivateImobiliserMode(self):
+        # this function is called when button is pressed
+        if self.worker.Imobiliser:
+            self.worker.unsetImobiliser()
+        else:
+            self.worker.setImobiliser()
+    
+    def BreakInFound(self):
+        if self.VehicleLock.text()  == "Locked":
+            self.AlarmWorker.startAlarm()
+            self.ActivateImobiliserMode()
+
 
 def NotifyPolice():
     # this function is called when button is pressed
@@ -165,9 +189,6 @@ def NotifyOwner():
     # this function is called when button is pressed
     print("The owner has been notified")
 
-def ActivateLimpMode():
-    # this function is called when button is pressed
-    print(" limp")
 
 
 
