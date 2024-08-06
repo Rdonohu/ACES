@@ -139,4 +139,3 @@ class AlarmWorker(QtCore.QThread):
             time.sleep(0.5)
 
 
-

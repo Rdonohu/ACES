@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Threads import Worker, ArduinoWorker, AlarmWorker
+from phone import Ui_Phone
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -191,6 +192,12 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
+    
     ui.setupUi(MainWindow)
     MainWindow.show()
+    Phone = QtWidgets.QMainWindow()
+    ui_phone = Ui_Phone()
+    ui_phone.setupUi(Phone)
+    Phone.show()
+    
     sys.exit(app.exec_())
