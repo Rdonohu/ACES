@@ -13,6 +13,7 @@ MPU6050 mpu;
 const float thresh = 1.1;
 String incomingString;
 bool lockState = false;
+unsigned long IRtransmission = 0 ;
 
 void setup() {
   Serial.begin(9600);
@@ -48,23 +49,25 @@ void loop() {
   }
   
   if (IrReceiver.decode()) {
-    IrReceiver.resume();
+    
     int command = IrReceiver.decodedIRData.command;
     switch (command){
 
       case IR_BUTTON_1: {
-       Serial.print(1);
+       Serial.print("ALock");
        break;
       }
       case IR_BUTTON_2: {
-       Serial.print(2);
+       Serial.print("Start");
        break;
       }
       case IR_BUTTON_3: {
-       Serial.print(3);
+       Serial.print("Alarm");
        break;
       }
     }
+    delay(400);
+    IrReceiver.resume();
   }
 
 
@@ -75,7 +78,6 @@ void loop() {
       lockState = false;
     } else if (strstr(incomingString.c_str(),  "lock")!= NULL) {
       lockState = true;
-      Serial.print(lockState);
     }
   }
    

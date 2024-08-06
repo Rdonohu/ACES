@@ -1,6 +1,5 @@
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QThread, pyqtSignal, QObject
+from PyQt5 import QtCore
 import time
 import keyboard
 import serial
@@ -43,8 +42,11 @@ class Worker(QtCore.QThread):
                     if self.Imobiliser and self.speed == 0:
                         self.speed=0
                         time.sleep(0.25)
-                    elif self.Imobiliser and self.speed >= 15:
-                         self.speed=self.speed-1
+                    elif self.Imobiliser and self.speed == 15:
+                        self.speed=self.speed
+                        time.sleep(0.25)
+                    elif self.Imobiliser and self.speed > 15:
+                         self.speed=self.speed -1
                          time.sleep(0.25)
                          print("Imobiliser Engaged")
                     else:
@@ -71,10 +73,13 @@ class ArduinoWorker(QtCore.QThread):
     #LCD worker thread
     valueFound = QtCore.pyqtSignal(int, name="valueFound")
     breakInFound = QtCore.pyqtSignal(bool, name="breakInFound")
+    lockSignal  = QtCore.pyqtSignal(bool, name="lockSignal")
+    startSignal  = QtCore.pyqtSignal(bool, name="startSignal")
+    alarmSignal  = QtCore.pyqtSignal(bool, name="alarmSignal")
 
     def __init__(self, parent=None):
         super(ArduinoWorker, self).__init__(parent)
-        self.arduino = serial.Serial(port = "COM5", timeout=0)
+        self.arduino = serial.Serial(port = "COM7", timeout=0)
         time.sleep(2)
         
     def startThread(self): 
@@ -93,10 +98,17 @@ class ArduinoWorker(QtCore.QThread):
     def run(self):
         while True:
             var = self.arduino.read(10)
-            if var == b"BreakIn":
-                self.breakInFound.emit(True)
+            if var != b"":
+                print(var)
+                if var == b"BreakIn":
+                    self.breakInFound.emit(True)
+                elif var == b"ALock":
+                    self.lockSignal.emit(True)
+                elif var == b"Start":
+                    self.startSignal.emit(True)
+                elif var == b"Alarm":
+                    self.alarmSignal.emit(True)
             time.sleep(0.5)
-            pass
 
 
 class AlarmWorker(QtCore.QThread):
