@@ -2,8 +2,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from Threads import Worker, ArduinoWorker, AlarmWorker
 from phone import Ui_Phone
 
-class Ui_MainWindow(object):
+class Ui_MainWindow(QtWidgets.QWidget):
+    ToOwnerToggleAlarmSignal = QtCore.pyqtSignal(bool)
     def setupUi(self, MainWindow):
+        
+
         # GUI Set Up DONT MIND THIS PART -----------------------------------------------------------------------------------------------------------------------------------
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1335, 915)
@@ -33,7 +36,7 @@ class Ui_MainWindow(object):
         self.label.setText("")
         self.label.setPixmap(QtGui.QPixmap("range-rover-05.jpg"))
         self.label.setObjectName("label")
-        self.graphicsView = QtWidgets.QGraphicsView(self.frame)
+        self.graphicsView = QtWidgets.QTextBrowser(self.frame)
         self.graphicsView.setGeometry(QtCore.QRect(10, 330, 271, 161))
         self.graphicsView.setStyleSheet("background-color: rgb(53, 53, 53)")
         self.graphicsView.setObjectName("graphicsView")
@@ -48,7 +51,7 @@ class Ui_MainWindow(object):
         self.frame_2.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_2.setObjectName("frame_2")
         self.AlarmTest = QtWidgets.QPushButton(self.frame_2)
-        self.AlarmTest.setGeometry(QtCore.QRect(30, 280, 161, 81))
+        self.AlarmTest.setGeometry(QtCore.QRect(30, 270, 161, 81))
         self.AlarmTest.setObjectName("AlarmTest")
         self.ActivateImobiliser = QtWidgets.QPushButton(self.frame_2)
         self.ActivateImobiliser.setGeometry(QtCore.QRect(30, 180, 161, 81))
@@ -70,6 +73,7 @@ class Ui_MainWindow(object):
         self.ActivateImobiliser.clicked.connect(self.ActivateImobiliserMode)
         self.PoliceNotifier.clicked.connect(self.NotifyPolice)
         self.OwnerNotifier.clicked.connect(self.NotifyOwner)
+        
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         # -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -148,6 +152,8 @@ class Ui_MainWindow(object):
             if self.AlarmWorker.getState():
                 self.AlarmWorker.stopAlarm()
                 self.worker.unsetImobiliser()
+            
+                
         else:
             #Lock vehicle
             self.VehicleLock.setText("Locked")
@@ -159,9 +165,26 @@ class Ui_MainWindow(object):
         if self.AlarmWorker.getState():
             self.AlarmWorker.stopAlarm()
             self.ActivateImobiliserMode()
+            self.ToOwnerToggleAlarmSignal.emit(False)
+            self.graphicsView.setHtml("")
         else:
             self.AlarmWorker.startAlarm()
             self.ActivateImobiliserMode()
+            try:
+                if not self.ui_phone.isVisible():
+                    self.Phone.show()
+                    self.ui_phone.alarmTriggeredNotification()
+                    self.ToOwnerToggleAlarmSignal.emit(True)
+                    self.graphicsView.setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:20pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#343535;\"><span style=\" font-family:\'Consolas\',\'Courier New\',\'monospace\'; font-size:16pt; color:white;\">THE OWNER HAS BEEN NOTIFIED WITH THE LIVE LOCATION OF THIS VEHICLE</span></p></body></html>")
+
+            except:
+                self.NotifyOwner()
+                self.ui_phone.alarmTriggeredNotification()
+            self.ToOwnerToggleAlarmSignal.emit(True)
 
     def ActivateImobiliserMode(self):
         # this function is called when button is pressed
@@ -174,6 +197,19 @@ class Ui_MainWindow(object):
         if self.VehicleLock.text()  == "Locked":
             self.AlarmWorker.startAlarm()
             self.ActivateImobiliserMode()
+            try:
+                print(self.ui_phone())
+                self.ui_phone.isVisible()
+            except:
+                self.NotifyOwner()
+                self.ui_phone.alarmTriggeredNotification()
+            self.ToOwnerToggleAlarmSignal.emit(True)
+            self.graphicsView.setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:20pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#343535;\"><span style=\" font-family:\'Consolas\',\'Courier New\',\'monospace\'; font-size:16pt; color:white;\">THE OWNER HAS BEEN NOTIFIED WITH THE LIVE LOCATION OF THIS VEHICLE</span></p></body></html>")
+
 
     def NotifyOwner(self):
     # this function is called when button is pressed
@@ -182,12 +218,22 @@ class Ui_MainWindow(object):
         self.ui_phone.setupUi(self.Phone)
         self.ui_phone.ToggleAlarmSignal.connect(self.ToggleAlarm)
         self.ui_phone.NotifyPoliceSignal.connect(self.NotifyPolice)
+        self.ToOwnerToggleAlarmSignal.connect(self.ui_phone.updateAlarmButton)
+        if self.AlarmWorker.getState():
+            self.ToOwnerToggleAlarmSignal.emit(True)
+        else:
+            self.ToOwnerToggleAlarmSignal.emit(False)
         self.Phone.show()
-    
+
 
     def NotifyPolice(self):
         # this function is called when button is pressed
-        print("police are on the way")
+                self.graphicsView.setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:20pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#343535;\"><span style=\" font-family:\'Consolas\',\'Courier New\',\'monospace\'; font-size:16pt; color:white;\">THE OWNER AND LAW ENFORCEMENT HAVE BEEN NOTIFIED WITH THE LIVE LOCATION OF THIS VEHICLE</span></p></body></html>")
+
 
 
 

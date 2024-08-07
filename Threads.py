@@ -79,7 +79,7 @@ class ArduinoWorker(QtCore.QThread):
 
     def __init__(self, parent=None):
         super(ArduinoWorker, self).__init__(parent)
-        self.arduino = serial.Serial(port = "COM5", timeout=0)
+        self.arduino = serial.Serial(port = "COM7", timeout=0)
         time.sleep(2)
         
     def startThread(self): 
@@ -114,6 +114,7 @@ class ArduinoWorker(QtCore.QThread):
 class AlarmWorker(QtCore.QThread):
     #LCD worker thread
     valueFound = QtCore.pyqtSignal(str, name="valueFound")
+    NotifyPoliceTimer = QtCore.pyqtSignal(bool)
 
     def __init__(self, console,parent=None) :
         super(AlarmWorker, self).__init__(parent)
@@ -130,6 +131,7 @@ class AlarmWorker(QtCore.QThread):
         self.alarmState = False
 
     def run(self):
+        
         while True:
             if self.alarmState:
                 self.valueFound.emit("background-color: red")
