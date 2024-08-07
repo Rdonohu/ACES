@@ -68,8 +68,8 @@ class Ui_MainWindow(object):
         self.VehicleLock.clicked.connect(self.LockVehicle)
         self.AlarmTest.clicked.connect(self.ToggleAlarm)
         self.ActivateImobiliser.clicked.connect(self.ActivateImobiliserMode)
-        self.PoliceNotifier.clicked.connect(NotifyPolice)
-        self.OwnerNotifier.clicked.connect(NotifyOwner)
+        self.PoliceNotifier.clicked.connect(self.NotifyPolice)
+        self.OwnerNotifier.clicked.connect(self.NotifyOwner)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         # -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -174,15 +174,22 @@ class Ui_MainWindow(object):
         if self.VehicleLock.text()  == "Locked":
             self.AlarmWorker.startAlarm()
             self.ActivateImobiliserMode()
+
+    def NotifyOwner(self):
+    # this function is called when button is pressed
+        self.Phone = QtWidgets.QMainWindow()
+        self.ui_phone = Ui_Phone()
+        self.ui_phone.setupUi(self.Phone)
+        self.ui_phone.ToggleAlarmSignal.connect(self.ToggleAlarm)
+        self.ui_phone.NotifyPoliceSignal.connect(self.NotifyPolice)
+        self.Phone.show()
     
 
-def NotifyPolice():
-    # this function is called when button is pressed
-    print("police are on the way")
+    def NotifyPolice(self):
+        # this function is called when button is pressed
+        print("police are on the way")
 
-def NotifyOwner():
-    # this function is called when button is pressed
-    print("The owner has been notified")
+
 
 
 
@@ -195,9 +202,5 @@ if __name__ == "__main__":
     
     ui.setupUi(MainWindow)
     MainWindow.show()
-    Phone = QtWidgets.QMainWindow()
-    ui_phone = Ui_Phone()
-    ui_phone.setupUi(Phone)
-    Phone.show()
-    
+
     sys.exit(app.exec_())

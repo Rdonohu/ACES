@@ -79,7 +79,7 @@ class ArduinoWorker(QtCore.QThread):
 
     def __init__(self, parent=None):
         super(ArduinoWorker, self).__init__(parent)
-        self.arduino = serial.Serial(port = "COM7", timeout=0)
+        self.arduino = serial.Serial(port = "COM5", timeout=0)
         time.sleep(2)
         
     def startThread(self): 
