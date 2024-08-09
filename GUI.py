@@ -1,7 +1,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Threads import Worker, ArduinoWorker, AlarmWorker
 from phone import Ui_Phone
-
+# TODO: Implement automatic police contact after x minutes of no action from owner
+# TODO: implement slider for key distance
+# TODO: sound acceleration and alarm
 class Ui_MainWindow(QtWidgets.QWidget):
     ToOwnerToggleAlarmSignal = QtCore.pyqtSignal(bool)
     def setupUi(self, MainWindow):
@@ -62,6 +64,18 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.OwnerNotifier = QtWidgets.QPushButton(self.frame_2)
         self.OwnerNotifier.setGeometry(QtCore.QRect(30, 0, 161, 81))
         self.OwnerNotifier.setObjectName("OwnerNotifier")
+        self.slider = QtWidgets.QSlider(self.centralwidget)
+        self.slider.setGeometry(QtCore.QRect(200, 800, 500, 16))
+        self.slider.setOrientation(QtCore.Qt.Horizontal)
+        self.slider.setMinimum(0)
+        self.slider.setMaximum(1000)
+        self.slider.setValue(10)
+        self.slider.setTickPosition( QtWidgets.QSlider.TicksBelow)
+        self.slider.setTickInterval(50)
+        self.slider.setObjectName("Slider")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(400, 700, 301, 161))
+
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -73,7 +87,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.ActivateImobiliser.clicked.connect(self.ActivateImobiliserMode)
         self.PoliceNotifier.clicked.connect(self.NotifyPolice)
         self.OwnerNotifier.clicked.connect(self.NotifyOwner)
-        
+        self.slider.valueChanged.connect(self.distanceFromKey)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         # -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -106,7 +120,9 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.AlarmTest.setText(_translate("MainWindow", "toggle alarm"))
         self.ActivateImobiliser.setText(_translate("MainWindow", "Activate Imobiliser Mode"))
         self.PoliceNotifier.setText(_translate("MainWindow", "Notify Police"))
-        self.OwnerNotifier.setText(_translate("MainWindow", "Notify Owner"))
+        self.OwnerNotifier.setText(_translate("MainWindow", "Open Owner App"))
+        self.label.setText(_translate("MainWindow", "Distance from car to key"))
+        
     
     # when speedo thread send back a value this function is used
     def OnValueFound(self, value):
@@ -118,10 +134,8 @@ class Ui_MainWindow(QtWidgets.QWidget):
         if self.StartButton.text()  == "start vehicle":
             self.StartButton.setText("Stop Vehicle")
             self.StartButton.setStyleSheet("background-color : red;")
-            if self.VehicleLock.text()  == "Locked":
-                if not self.AlarmWorker.getState():
-                    self.AlarmWorker.startAlarm()
-                    self.worker.setImobiliser()
+            self.BreakInFound()
+                    
 
         else:
             self.StartButton.setText("start vehicle")
@@ -149,9 +163,9 @@ class Ui_MainWindow(QtWidgets.QWidget):
             self.VehicleLock.setText("Lock")
             self.VehicleLock.setStyleSheet("background-color : rgb(0, 181, 87)")
             self.ArduinoWorker.sendUnlock()
-            if self.AlarmWorker.getState():
-                self.AlarmWorker.stopAlarm()
-                self.worker.unsetImobiliser()
+            # if self.AlarmWorker.getState():
+            #     self.AlarmWorker.stopAlarm()
+            #     self.worker.unsetImobiliser()
             
                 
         else:
@@ -164,27 +178,26 @@ class Ui_MainWindow(QtWidgets.QWidget):
         # this function is called when button is pressed
         if self.AlarmWorker.getState():
             self.AlarmWorker.stopAlarm()
-            self.ActivateImobiliserMode()
+            self.worker.unsetImobiliser()
             self.ToOwnerToggleAlarmSignal.emit(False)
             self.graphicsView.setHtml("")
         else:
             self.AlarmWorker.startAlarm()
-            self.ActivateImobiliserMode()
+            self.worker.setImobiliser()
             try:
                 if not self.ui_phone.isVisible():
                     self.Phone.show()
-                    self.ui_phone.alarmTriggeredNotification()
                     self.ToOwnerToggleAlarmSignal.emit(True)
-                    self.graphicsView.setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:20pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#343535;\"><span style=\" font-family:\'Consolas\',\'Courier New\',\'monospace\'; font-size:16pt; color:white;\">THE OWNER HAS BEEN NOTIFIED WITH THE LIVE LOCATION OF THIS VEHICLE</span></p></body></html>")
-
+                    
             except:
                 self.NotifyOwner()
                 self.ui_phone.alarmTriggeredNotification()
             self.ToOwnerToggleAlarmSignal.emit(True)
+            self.graphicsView.setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:20pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#343535;\"><span style=\" font-family:\'Consolas\',\'Courier New\',\'monospace\'; font-size:16pt; color:white;\">THE OWNER HAS BEEN NOTIFIED WITH THE LIVE LOCATION OF THIS VEHICLE</span></p></body></html>")
 
     def ActivateImobiliserMode(self):
         # this function is called when button is pressed
@@ -196,10 +209,13 @@ class Ui_MainWindow(QtWidgets.QWidget):
     def BreakInFound(self):
         if self.VehicleLock.text()  == "Locked":
             self.AlarmWorker.startAlarm()
-            self.ActivateImobiliserMode()
+            self.worker.setImobiliser()
             try:
-                print(self.ui_phone())
-                self.ui_phone.isVisible()
+                if not self.ui_phone.isVisible():
+                    self.Phone.show()
+                    self.ui_phone.alarmTriggeredNotification()
+                    self.ToOwnerToggleAlarmSignal.emit(True)
+                    
             except:
                 self.NotifyOwner()
                 self.ui_phone.alarmTriggeredNotification()
@@ -228,14 +244,17 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
     def NotifyPolice(self):
         # this function is called when button is pressed
-                self.graphicsView.setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        self.graphicsView.setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:20pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#343535;\"><span style=\" font-family:\'Consolas\',\'Courier New\',\'monospace\'; font-size:16pt; color:white;\">THE OWNER AND LAW ENFORCEMENT HAVE BEEN NOTIFIED WITH THE LIVE LOCATION OF THIS VEHICLE</span></p></body></html>")
+        self.AlarmWorker.startAlarm()
+        self.worker.setImobiliser()
+        self.ToOwnerToggleAlarmSignal.emit(True)
 
-
-
+    def distanceFromKey(self, value):
+        print(value)
 
 
 

@@ -6,6 +6,10 @@
 #define IR_BUTTON_1 16
 #define IR_BUTTON_2 17
 #define IR_BUTTON_3 18
+#define IR_BUTTON_4 20
+#define RED_PIN 11
+#define GREEN_PIN 10
+#define BLUE_PIN 9
 
 
 MPU6050 mpu;
@@ -13,6 +17,7 @@ MPU6050 mpu;
 const float thresh = 1.1;
 String incomingString;
 bool lockState = false;
+bool policeState = false;
 unsigned long IRtransmission = 0 ;
 
 void setup() {
@@ -28,6 +33,10 @@ void setup() {
     
   }
   IrReceiver.begin(IR_RECEIVE_PIN);
+  pinMode(RED_PIN, OUTPUT);
+  pinMode(BLUE_PIN, OUTPUT);
+  pinMode(GREEN_PIN, OUTPUT);
+  setColor(255,0,255);
 }
 
 void loop() {
@@ -65,6 +74,10 @@ void loop() {
        Serial.print("Alarm");
        break;
       }
+      case IR_BUTTON_4: {
+       Serial.print("Police");
+       break;
+      }
     }
     delay(400);
     IrReceiver.resume();
@@ -79,11 +92,26 @@ void loop() {
     } else if (strstr(incomingString.c_str(),  "lock")!= NULL) {
       lockState = true;
     }
+    else if (strstr(incomingString.c_str(),  "POPO")!= NULL) {
+      policeState = true;
   }
-   
+      else if (strstr(incomingString.c_str(),  "NOP")!= NULL) {
+      policeState = false;
+      setColor(255,0,255);
+  }
+  }
+  if (policeState) {
+    setColor(255,0,0);
+    delay(200);
+    setColor(0,0,255);
+    delay(200);
+  }
+  
 
+}
 
-
-  delay(50);
-
+void setColor(int red, int green, int blue){
+  digitalWrite(RED_PIN, red);
+  digitalWrite(GREEN_PIN, green);
+  digitalWrite(BLUE_PIN, blue);
 }

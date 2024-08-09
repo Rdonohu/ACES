@@ -70,7 +70,7 @@ class Worker(QtCore.QThread):
 
 
 class ArduinoWorker(QtCore.QThread):
-    #LCD worker thread
+    #arduino worker thread
     valueFound = QtCore.pyqtSignal(int, name="valueFound")
     breakInFound = QtCore.pyqtSignal(bool, name="breakInFound")
     lockSignal  = QtCore.pyqtSignal(bool, name="lockSignal")
@@ -79,7 +79,7 @@ class ArduinoWorker(QtCore.QThread):
 
     def __init__(self, parent=None):
         super(ArduinoWorker, self).__init__(parent)
-        self.arduino = serial.Serial(port = "COM7", timeout=0)
+        # self.arduino = serial.Serial(port = "COM7", timeout=0)
         time.sleep(2)
         
     def startThread(self): 
@@ -89,30 +89,30 @@ class ArduinoWorker(QtCore.QThread):
         pass
 
     def sendLock(self):
-        self.arduino.write(str.encode("lock"))
-    
+        # self.arduino.write(str.encode("lock"))
+        pass
     def sendUnlock(self):
-        self.arduino.write(str.encode("unlock"))
-
+        # self.arduino.write(str.encode("unlock"))
+        pass
 
     def run(self):
         while True:
-            var = self.arduino.read(10)
-            if var != b"":
-                print(var)
-                if var == b"BreakIn":
-                    self.breakInFound.emit(True)
-                elif var == b"ALock":
-                    self.lockSignal.emit(True)
-                elif var == b"Start":
-                    self.startSignal.emit(True)
-                elif var == b"Alarm":
-                    self.alarmSignal.emit(True)
+            # var = self.arduino.read(10)
+            # if var != b"":
+            #     print(var)
+            #     if var == b"BreakIn":
+            #         self.breakInFound.emit(True)
+            #     elif var == b"ALock":
+            #         self.lockSignal.emit(True)
+            #     elif var == b"Start":
+            #         self.startSignal.emit(True)
+            #     elif var == b"Alarm":
+            #         self.alarmSignal.emit(True)
             time.sleep(0.5)
 
 
 class AlarmWorker(QtCore.QThread):
-    #LCD worker thread
+    #Alarm worker thread
     valueFound = QtCore.pyqtSignal(str, name="valueFound")
     NotifyPoliceTimer = QtCore.pyqtSignal(bool)
 
