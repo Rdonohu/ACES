@@ -95,7 +95,7 @@ void loop() {
     else if (strstr(incomingString.c_str(),  "POPO")!= NULL) {
       policeState = true;
   }
-      else if (strstr(incomingString.c_str(),  "NOP")!= NULL) {
+    else if (strstr(incomingString.c_str(),  "NOP")!= NULL) {
       policeState = false;
       setColor(255,0,255);
   }

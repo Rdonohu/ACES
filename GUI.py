@@ -1,11 +1,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from Threads import Worker, ArduinoWorker, AlarmWorker
 from phone import Ui_Phone
-# TODO: Implement automatic police contact after x minutes of no action from owner
+
 # TODO: implement slider for key distance
 # TODO: sound acceleration and alarm
 class Ui_MainWindow(QtWidgets.QWidget):
     ToOwnerToggleAlarmSignal = QtCore.pyqtSignal(bool)
+    PoliceNotifiedSignal  = QtCore.pyqtSignal(bool)
     def setupUi(self, MainWindow):
         
 
@@ -73,6 +74,8 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.slider.setTickPosition( QtWidgets.QSlider.TicksBelow)
         self.slider.setTickInterval(50)
         self.slider.setObjectName("Slider")
+        self.slider.setTracking(False)
+        self.slider.setFocusPolicy(QtCore.Qt.NoFocus)
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(400, 700, 301, 161))
 
@@ -104,10 +107,12 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.ArduinoWorker.lockSignal.connect(self.LockVehicle)
         self.ArduinoWorker.startSignal.connect(self.StartVehicle)
         self.ArduinoWorker.alarmSignal.connect(self.ToggleAlarm)
+        self.ArduinoWorker.policeSignal.connect(self.NotifyPolice)
         self.ArduinoWorker.start()
 
         self.AlarmWorker = AlarmWorker(self.graphicsView)
         self.AlarmWorker.valueFound.connect(self.AlarmOnValueFound)
+        self.AlarmWorker.NotifyPoliceTimer.connect(self.policeTimer)
         self.AlarmWorker.start()
         # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -163,6 +168,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
             self.VehicleLock.setText("Lock")
             self.VehicleLock.setStyleSheet("background-color : rgb(0, 181, 87)")
             self.ArduinoWorker.sendUnlock()
+            self.ArduinoWorker.unsendPOPO()
             # if self.AlarmWorker.getState():
             #     self.AlarmWorker.stopAlarm()
             #     self.worker.unsetImobiliser()
@@ -176,11 +182,13 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
     def ToggleAlarm(self):
         # this function is called when button is pressed
+        print(self.AlarmWorker.getState())
         if self.AlarmWorker.getState():
             self.AlarmWorker.stopAlarm()
             self.worker.unsetImobiliser()
             self.ToOwnerToggleAlarmSignal.emit(False)
             self.graphicsView.setHtml("")
+            self.ArduinoWorker.unsendPOPO()
         else:
             self.AlarmWorker.startAlarm()
             self.worker.setImobiliser()
@@ -235,6 +243,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.ui_phone.ToggleAlarmSignal.connect(self.ToggleAlarm)
         self.ui_phone.NotifyPoliceSignal.connect(self.NotifyPolice)
         self.ToOwnerToggleAlarmSignal.connect(self.ui_phone.updateAlarmButton)
+        self.PoliceNotifiedSignal.connect(self.ui_phone.policeNotifiedNotification)
         if self.AlarmWorker.getState():
             self.ToOwnerToggleAlarmSignal.emit(True)
         else:
@@ -252,9 +261,15 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.AlarmWorker.startAlarm()
         self.worker.setImobiliser()
         self.ToOwnerToggleAlarmSignal.emit(True)
+        self.ArduinoWorker.sendPOPO()
+        self.PoliceNotifiedSignal.emit(True)
 
     def distanceFromKey(self, value):
         print(value)
+    
+    def policeTimer(self):
+        self.NotifyPolice()
+        
 
 
 
