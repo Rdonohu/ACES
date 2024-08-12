@@ -6,11 +6,14 @@ import folium
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 import os
 import cv2 
+import time
+
 
 class Ui_Phone( QtWidgets.QWidget):
     ToggleAlarmSignal = QtCore.pyqtSignal(int)
     NotifyPoliceSignal = QtCore.pyqtSignal(int, name="NotifyPoliceSignal")
-
+    getCoordsSignal = QtCore.pyqtSignal(bool)
+    
     def setupUi(self, Phone):
         Phone.setObjectName("Phone")
         Phone.resize(486, 743)
@@ -37,8 +40,9 @@ class Ui_Phone( QtWidgets.QWidget):
         self.textBrowser = QtWidgets.QTextBrowser(self.centralwidget)
         self.textBrowser.setGeometry(QtCore.QRect(0, 0, 491, 171))
         self.textBrowser.setObjectName("textBrowser")
-
-        coordinate = (52.6968598,-8.9031497)
+        self.latitude = 52.6968598
+        self.longitude = -8.9031497
+        coordinate = (self.latitude,self.longitude)
         m = folium.Map(
             title = "Current Location",
             zoom_start = 15,
@@ -80,7 +84,7 @@ class Ui_Phone( QtWidgets.QWidget):
         "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:20pt; font-weight:400; font-style:normal;\">\n"
         "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#ffffff;\"><span style=\" font-family:\'Consolas\',\'Courier New\',\'monospace\'; font-size:16pt; color:#a31515;\">If Your car has been Stolen please use the features below.</span></p></body></html>"))
     def updateLocation(self):
-        coordinate = (52.6968598,-8.9031497)
+        coordinate = (self.latitude,self.longitude)
         m = folium.Map(
             title = "Current Location",
             zoom_start = 15,
@@ -124,4 +128,8 @@ class Ui_Phone( QtWidgets.QWidget):
         img_name = "cabin_image.png"
         cv2.imwrite(img_name, frame)
         self.location.setHtml('<img src="cabin_image.png"/ style="width:100%; height:100%; object-fit:contain">', baseUrl=QtCore.QUrl.fromLocalFile(os.getcwd()+os.path.sep))
+
+    def update_coords(self, latitude,longitude):
+        self.latitude = latitude
+        self.longitude = longitude
 

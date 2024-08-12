@@ -1,6 +1,8 @@
 #include <Wire.h>
 #include <MPU6050.h>
 #include <IRremote.h>
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
 
 #define IR_RECEIVE_PIN 3
 #define IR_BUTTON_1 16
@@ -10,8 +12,11 @@
 #define RED_PIN 11
 #define GREEN_PIN 10
 #define BLUE_PIN 9
-
-
+static const int RXPin = 4, TXPin = 5;
+// The TinyGPS++ object
+TinyGPSPlus gps;
+SoftwareSerial ss(RXPin, TXPin);
+// acelerometer
 MPU6050 mpu;
 
 const float thresh = 1.1;
@@ -19,12 +24,13 @@ String incomingString;
 bool lockState = false;
 bool policeState = false;
 unsigned long IRtransmission = 0 ;
-
+double Lat = 50.6968598;
+double longitude = -17.9031497;
 void setup() {
   Serial.begin(9600);
   Wire.begin();
   mpu.initialize();
-
+  ss.begin(9600);
   if(!mpu.testConnection()){
     Serial.println("Connection Failed");
     while(1);
@@ -99,6 +105,13 @@ void loop() {
       policeState = false;
       setColor(255,0,255);
   }
+    else if (strstr(incomingString.c_str(),  "COORDS")!= NULL){
+      Serial.print("LAT: ");
+      Serial.print(Lat,6);
+      Serial.print(", LON: ");
+      Serial.print(longitude,6);
+      Serial.println();  
+    }
   }
   if (policeState) {
     setColor(255,0,0);
@@ -106,8 +119,15 @@ void loop() {
     setColor(0,0,255);
     delay(200);
   }
-  
-
+    // This sketch displays information every time a new sentence is correctly encoded.
+  while (ss.available() > 0){
+    gps.encode(ss.read());
+    if (gps.location.isUpdated()){
+      
+      Lat = gps.location.lat() ;
+      longitude = gps.location.lng();
+    }
+  }
 }
 
 void setColor(int red, int green, int blue){

@@ -108,6 +108,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.ArduinoWorker.startSignal.connect(self.StartVehicle)
         self.ArduinoWorker.alarmSignal.connect(self.ToggleAlarm)
         self.ArduinoWorker.policeSignal.connect(self.NotifyPolice)
+        self.ArduinoWorker.coordsReceived.connect(self.up_coordinates)
         self.ArduinoWorker.start()
 
         self.AlarmWorker = AlarmWorker(self.graphicsView)
@@ -244,6 +245,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.ui_phone.NotifyPoliceSignal.connect(self.NotifyPolice)
         self.ToOwnerToggleAlarmSignal.connect(self.ui_phone.updateAlarmButton)
         self.PoliceNotifiedSignal.connect(self.ui_phone.policeNotifiedNotification)
+        
         if self.AlarmWorker.getState():
             self.ToOwnerToggleAlarmSignal.emit(True)
         else:
@@ -269,7 +271,11 @@ class Ui_MainWindow(QtWidgets.QWidget):
     
     def policeTimer(self):
         self.NotifyPolice()
+
+    def up_coordinates(self, latitude , longitude):
+        self.ui_phone.update_coords(latitude , longitude)
         
+             
 
 
 

@@ -114,14 +114,16 @@ class ArduinoWorker(QtCore.QThread):
     startSignal  = QtCore.pyqtSignal(bool, name="startSignal")
     alarmSignal  = QtCore.pyqtSignal(bool, name="alarmSignal")
     policeSignal  = QtCore.pyqtSignal(bool, name="policeSignal")
+    coordsReceived = QtCore.pyqtSignal(float, float, name="coordsReceived")
+
 
     def __init__(self, parent=None):
         super(ArduinoWorker, self).__init__(parent)
-        self.arduino = serial.Serial(port = "COM7", timeout=0)
+        self.arduino = serial.Serial(port = "COM5", timeout=0)
         time.sleep(2)
         self.POPO_sound = pygame.mixer.Sound("police.wav")
         self.POPO_channel = pygame.mixer.Channel(2)
-
+       
         
     def startThread(self): 
         pass
@@ -150,11 +152,54 @@ class ArduinoWorker(QtCore.QThread):
         if self.POPO_channel.get_busy():
             self.POPO_channel.stop()
 
+    # def get_Coords(self):
+    #     self.arduino.write(b'COORDS')
+        
+    #     buffer = ""  # Buffer to hold partial data
+
+    #     while True:
+    #         line = self.arduino.readline().decode("utf-8").strip()
+            
+    #         if line:
+    #             buffer += line  # Accumulate the incoming data
+    #             print(f"Received: {buffer}")
+
+    #             # Look for the expected format
+    #             if "LAT:" in buffer and ", LON:" in buffer:
+    #                 try:
+    #                     # Extract latitude and longitude from the buffer
+    #                     lat_str = buffer.split('LAT:')[1].split(', LON:')[0].strip()
+    #                     lon_str = buffer.split(', LON:')[1].strip()
+
+    #                     # Convert to float
+    #                     latitude = float(lat_str)
+    #                     longitude = float(lon_str)
+
+    #                     # Emit the coordinates
+    #                     self.coordsReceived.emit(latitude, longitude)
+                        
+    #                     # Exit loop after successful parsing
+    #                     return
+    #                 except (IndexError, ValueError) as e:
+    #                     print(f"Error parsing coordinates: {e}")
+    #                     # Handle error case, possibly reset buffer
+    #                     buffer = ""
+    #                     return None
+    #             else:
+    #                 # Check if we need to handle incomplete data
+    #                 if "\n" in line:  # Consider buffer reset strategy based on specific use-case
+    #                     print("Incomplete data, waiting for more...")
+    #         else:
+    #             # Optional: Handle case when no data is received
+    #             pass
+
+
     def run(self):
+        x = 0
         while True:
             var = self.arduino.read(10)
             if var != b"":
-                print(var)
+                
                 if var == b"BreakIn":
                     self.breakInFound.emit(True)
                 elif var == b"ALock":
@@ -165,6 +210,11 @@ class ArduinoWorker(QtCore.QThread):
                     self.alarmSignal.emit(True)
                 elif var == b"Police":
                     self.policeSignal.emit(True)
+            # if x >= 5 :
+            #     self.get_Coords()
+            #     x = 0
+            # else:
+            #     x +=1
             time.sleep(0.5)
 
 
