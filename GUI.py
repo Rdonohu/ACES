@@ -3,7 +3,6 @@ from Threads import Worker, ArduinoWorker, AlarmWorker
 from phone import Ui_Phone
 
 # TODO: implement slider for key distance
-# TODO: sound acceleration and alarm
 class Ui_MainWindow(QtWidgets.QWidget):
     ToOwnerToggleAlarmSignal = QtCore.pyqtSignal(bool)
     PoliceNotifiedSignal  = QtCore.pyqtSignal(bool)
@@ -66,18 +65,19 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.OwnerNotifier.setGeometry(QtCore.QRect(30, 0, 161, 81))
         self.OwnerNotifier.setObjectName("OwnerNotifier")
         self.slider = QtWidgets.QSlider(self.centralwidget)
-        self.slider.setGeometry(QtCore.QRect(200, 800, 500, 16))
+        self.slider.setGeometry(QtCore.QRect(200, 800, 500, 40))
         self.slider.setOrientation(QtCore.Qt.Horizontal)
         self.slider.setMinimum(0)
-        self.slider.setMaximum(1000)
-        self.slider.setValue(10)
+        self.slider.setMaximum(500)
+        # self.slider.setValue(0)
         self.slider.setTickPosition( QtWidgets.QSlider.TicksBelow)
         self.slider.setTickInterval(50)
         self.slider.setObjectName("Slider")
         self.slider.setTracking(False)
         self.slider.setFocusPolicy(QtCore.Qt.NoFocus)
+       
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(400, 700, 301, 161))
+        self.label.setGeometry(QtCore.QRect(400, 750, 150, 50))
 
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -265,7 +265,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.PoliceNotifiedSignal.emit(True)
 
     def distanceFromKey(self, value):
-        print(value)
+        pass
     
     def policeTimer(self):
         self.NotifyPolice()

@@ -73,7 +73,7 @@ class Ui_Phone( QtWidgets.QWidget):
         self.UpdateLocation.setText(_translate("Phone", "Update Location"))
         self.NotifyPolice.setText(_translate("Phone", "Notify Police"))
         self.ActivateAlarm.setText(_translate("Phone", "Activate Alarm and Immobilizer"))
-        self.CabinView.setText(_translate("Phone", "Show The abin"))
+        self.CabinView.setText(_translate("Phone", "Show The Cabin"))
         self.textBrowser.setHtml(_translate("Phone", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
         "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
         "p, li { white-space: pre-wrap; }\n"
